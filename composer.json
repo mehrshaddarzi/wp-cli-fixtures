@@ -1,5 +1,5 @@
 {
-  "name": "hellonico/wp-cli-fixtures",
+  "name": "mehrshaddarzi/wp-cli-fixtures",
   "type": "wp-cli-package",
   "description": "Easily generate fake data for WordPress",
   "homepage": "https://github.com/nlemoine/wp-cli-fixtures",
