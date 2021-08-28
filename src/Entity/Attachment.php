@@ -127,6 +127,22 @@ class Attachment extends Post
         }
 
         foreach ($query->posts as $id) {
+            // Remove Image Size
+            $attachment_id = $id;
+            $meta = wp_get_attachment_metadata($attachment_id);
+            $attachment_original = get_attached_file($attachment_id);
+            $attachment_basedir = dirname($attachment_original);
+            if (isset($meta['sizes']) && is_array($meta['sizes'])) {
+                foreach ($meta['sizes'] as $size => $sizeinfo) {
+                    $file = wp_basename($sizeinfo['file']);
+                    $path = path_join($attachment_basedir, $file);
+                    if (file_exists($path)) {
+                        @wp_delete_file($path);
+                    }
+                }
+            }
+
+            // Delete Original Attachment
             wp_delete_attachment($id, true);
         }
         $count = count($query->posts);
