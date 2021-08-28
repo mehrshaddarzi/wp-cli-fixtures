@@ -29,6 +29,7 @@ class Attachment extends Post
      */
     public function persist()
     {
+        $this->file = str_ireplace("\\", "/", $this->file);
         if (!$this->ID || empty($this->file)) {
             if (is_file($this->file)) {
                 @unlink($this->file);
@@ -40,7 +41,7 @@ class Attachment extends Post
         }
 
         $file_name  = basename($this->file);
-        $upload_dir = wp_upload_dir();
+        $upload_dir = str_ireplace("\\", "/", wp_upload_dir());
 
         // Image has been saved to sys temp dir
         if (false === strpos($this->file, $upload_dir['basedir'])) {
