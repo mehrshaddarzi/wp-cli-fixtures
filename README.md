@@ -17,7 +17,7 @@ Quick links: [Install](#install) | [Usage](#usage) | [Contribute](#contribute)
 ## Install
 
 ```bash
-wp package install https://github.com/nelmio/alice/archive/refs/heads/master.zip
+wp package install https://github.com/mehrshaddarzi/wp-cli-fixtures/archive/refs/heads/master.zip
 ```
 
 Requires PHP `^7.3`.
