@@ -17,7 +17,7 @@ Quick links: [Install](#install) | [Usage](#usage) | [Contribute](#contribute)
 ## Install
 
 ```bash
-wp package install git@github.com:nlemoine/wp-cli-fixtures.git
+wp package install git@github.com:mehrshaddarzi/wp-cli-fixtures.git
 ```
 
 Requires PHP `^7.3`.
@@ -26,7 +26,7 @@ Requires PHP `^7.3`.
 
 ### Create fixtures
 
-At the root of your project, create a `fixtures.yml` file (you can download it [here](https://raw.githubusercontent.com/nlemoine/wp-cli-fixtures/master/examples/fixtures.yml)):
+At the root of your project, create a `fixtures.yml` file (you can download it [here](https://raw.githubusercontent.com/mehrshaddarzi/wp-cli-fixtures/master/examples/fixtures.yml)):
 
 ```yaml
 #
@@ -35,8 +35,8 @@ At the root of your project, create a `fixtures.yml` file (you can download it [
 Hellonico\Fixtures\Entity\User:
   user{1..10}:
     user_login (unique): <username()> # '(unique)' is required
-    user_pass: 123456
-    user_email: <safeEmail()>
+    user_pass: 123
+    user_email: <freeEmail()>
     user_url: <url()>
     user_registered: <dateTimeThisDecade()>
     first_name: <firstName()>
@@ -44,10 +44,16 @@ Hellonico\Fixtures\Entity\User:
     description: <sentence()>
     role: <randomElement(['subscriber', 'editor'])>
     meta:
-      phone_number: <phoneNumber()>
-      address: <streetAddress()>
-      zip: <postcode()>
-      city: <city()>
+      show_admin_bar_front: 'false'
+      billing_phone: <phoneNumber()>
+      billing_country: 'IR'
+      billing_state: <randomElement(['ABZ','ADL','EAZ','WAZ','BHR','CHB','FRS','GIL','GLS','HDN','HRZ','ILM','ESF','KRN','KRH','NKH','RKH','SKH','KHZ','KBD','KRD','LRS','MKZ','MZN','GZN','QHM','SMN','SBN','THR','YZD','ZJN'])>
+      billing_city: <city()>
+      billing_address_1: <streetAddress()>
+      billing_postcode: <postcode()>
+      billing_email: '@self->user_email'
+      billing_first_name: '@self->first_name'
+      billing_last_name: '@self->last_name'
     acf:
       facebook_url: <url()>
       twitter_url: <url()>
@@ -56,18 +62,16 @@ Hellonico\Fixtures\Entity\User:
 # ATTACHMENTS
 #
 Hellonico\Fixtures\Entity\Attachment:
-  default (template): # templates can be extended to keep things DRY
+  default (template):
     post_title: <words(2, true)>
     post_date: <dateTimeThisDecade()>
     post_content: <paragraphs(5, true)>
-  images{1..15} (extends default):
-    file: <image(<uploadDir()>, 1200, 1200, 'cats')> # <uploadDir()> is required, image() is the default faker provider and gets images from lorempixel.
-  pics{1..15} (extends default):
-    file: <picsum(<uploadDir()>, 1200, 1200)> # Alternatively we provide a picsum() provider which uses picsum for images. It's quicker but doesn't support image categories.
+  pics{1..3} (extends default):
+    file: <picsum(<uploadDir()>, 400, 400)>
   documents{1..2} (extends default):
-    file: <fileIn('relative/path/to/pdfs')>
-  custom_images{1..10} (extends default):
-    file: <fileIn('relative/path/to/images')>
+    file: <fileIn('C:\Users\xxx\Desktop\document', <uploadDir()>)>
+  custom_images{1..4} (extends default):
+    file: <fileIn('C:\Users\xxx\Desktop\wallpaper', <uploadDir()>)>
 
 #
 # TERMS
@@ -78,14 +82,14 @@ Hellonico\Fixtures\Entity\Term:
     description: <sentence()>
     parent: '50%? <termId(childless=1)>' # 50% of created categories will have a top level parent category
     taxonomy: 'category' # could be skipped, default to 'category'
-  tag{1..40}:
+  tag{1..5}:
     name (unique): <words(2, true)> # '(unique)' is required
     description: <sentence()>
-    taxonomy: post_tag
-  places{1..4}: # custom taxonomy
+    taxonomy: 'post_tag'
+  product_cat{1..5}: # custom taxonomy
     name (unique): <words(2, true)> # '(unique)' is required
     description: <sentences(3, true)>
-    taxonomy: place
+    taxonomy: 'product_cat'
     acf:
       address: <streetAddress>
       zip: <postcode()>
@@ -98,64 +102,39 @@ Hellonico\Fixtures\Entity\Term:
 Hellonico\Fixtures\Entity\Post:
 
   # TEMPLATE
-  default (template):
-    post_title: <words(2, true)>
+  defaultpost (template):
+    post_title: <words(5, true)>
     post_date: <dateTimeThisDecade()>
     post_content: <paragraphs(5, true)>
     post_excerpt: <paragraphs(1, true)>
-    meta:
-      _thumbnail_id: '@attachment*->ID'
 
   # POSTS
-  post{1..30} (extends default):
-    # 'meta' and 'meta_input' are basically the same, you can use one or both,
-    # they will be merged, just don't provide the same keys in each definition
+  post{1..30} (extends defaultpost):
     meta:
-      _thumbnail_id: '@attachment*->ID'
+      _thumbnail_id: '@custom_images*->ID'
     meta_input:
       _extra_field: <paragraphs(1, true)>
     post_category: '3x @category*->term_id' # post_category only accepts IDs
     tax_input:
-      post_tag: '5x @tag*->term_id'
+      post_tag: '2x @tag*->term_id'
       # post_tag: '5x <words(2, true)> # Or tags can be dynamically created
 
   # PAGES
-  page{contact, privacy}:
+  page{contact, privacy} (extends defaultpost):
     post_title: <current()>
     post_type: page
 
   # CUSTOM POST TYPE
-  product{1..15}:
+  product{1..15} (extends defaultpost):
     post_type: product
-    acf:
-      # number field
-      price: <numberBetween(10, 200)>
-      # gallery field
-      gallery: '3x @attachment*->ID'
-      # oembed field
-      video: https://www.youtube.com/watch?v=E90_aL870ao
-      # link field
-      link:
-        url: https://www.youtube.com/watch?v=E90_aL870ao
-        title: <words(2, true)>
-        target: _blank
-      # repeater field
-      features:
-        - label: <words(2, true)>
-          value: <sentence()
-        - label: <words(2, true)>
-          value: <sentence()>
-        - label: <words(2, true)>
-          value: <sentence()>
-      # layout field
-      blocks:
-        - acf_fc_layout: text_image
-          title: <words(4, true)>
-          content: <sentences(8, true)>
-          image: '@attachment*->ID'
-        - acf_fc_layout: image_image
-          image_left: '@attachment*->ID'
-          image_right: '@attachment*->ID'
+    meta:
+      _thumbnail_id: '@custom_images*->ID'
+    meta_input:
+      _sku: <numberBetween(1000, 2000)>
+      _price: <numberBetween(10000, 20000)>
+      _stock_status: 'instock'
+      _manage_stock: 'yes'
+      _stock: <numberBetween(1, 10)>
 
 #
 # COMMENTS
